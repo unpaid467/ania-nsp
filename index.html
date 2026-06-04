@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Commuter Flow Web</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Static Browser Port</p>
+        <h1>Commuter Flow Web</h1>
+        <p class="subtitle">
+          Self-contained browser app for loading local files, filtering commuter flows,
+          and downloading export bundles without a backend.
+        </p>
+      </div>
+      <div class="hero-card">
+        <p class="hero-card-title">Input format note</p>
+        <p>
+          This first browser build expects <strong>GeoJSON</strong> for gmina/powiat boundaries
+          and <strong>XLSX or CSV</strong> for flows. It stays fully inside this folder and needs no CDN.
+        </p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Files</h2>
+      <div class="grid two-up">
+        <label class="field">
+          <span>Gmina GeoJSON</span>
+          <input id="gminaFile" type="file" accept=".json,.geojson,application/json">
+        </label>
+        <label class="field">
+          <span>Powiat GeoJSON</span>
+          <input id="powiatFile" type="file" accept=".json,.geojson,application/json">
+        </label>
+        <label class="field field-wide">
+          <span>Flow workbook</span>
+          <input id="flowFile" type="file" accept=".xlsx,.csv,.txt">
+        </label>
+      </div>
+      <div class="toolbar">
+        <button id="loadButton" class="primary">Load / Refresh</button>
+        <p id="loadSummary" class="muted">Choose files, then load data.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Selection</h2>
+      <div class="grid selection-grid">
+        <label class="field">
+          <span>Scope</span>
+          <select id="scopeMode">
+            <option value="gmina">Gmina</option>
+            <option value="powiat">Powiat</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Flow direction</span>
+          <select id="flowMode">
+            <option value="from">From gmina</option>
+            <option value="to">To gmina</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Search</span>
+          <input id="searchInput" type="search" placeholder="Filter by code or name">
+        </label>
+        <label class="field field-wide">
+          <span>Selection</span>
+          <select id="selectionInput"></select>
+        </label>
+        <label class="field">
+          <span>Transfers greater than</span>
+          <input id="transferThreshold" type="number" min="0" step="1" placeholder="No filter">
+        </label>
+        <label class="field">
+          <span>Max distance (km)</span>
+          <input id="rangeKm" type="number" min="0" step="0.1" placeholder="No filter">
+        </label>
+        <label class="field">
+          <span>Top N</span>
+          <input id="topN" type="number" min="0" step="1" placeholder="No filter">
+        </label>
+      </div>
+      <div id="powiatPickerWrap" class="powiat-picker hidden">
+        <div class="powiat-picker-header">
+          <strong>Gminas in selected powiat</strong>
+          <div class="toolbar compact">
+            <button id="selectAllPowiat" type="button">Select all</button>
+            <button id="clearAllPowiat" type="button">Clear all</button>
+          </div>
+        </div>
+        <p id="powiatSummary" class="muted">Choose a powiat to manage included gminas.</p>
+        <div id="powiatChecklist" class="checklist"></div>
+      </div>
+      <div class="toolbar">
+        <button id="exportButton" class="primary">Export bundle</button>
+        <span id="statusLine" class="status">Ready</span>
+      </div>
+    </section>
+
+    <section class="grid two-up bottom-grid">
+      <article class="panel panel-fill">
+        <h2>Validation</h2>
+        <pre id="validationText" class="log-box">No dataset loaded.</pre>
+      </article>
+      <article class="panel panel-fill">
+        <h2>Selection details</h2>
+        <pre id="detailsText" class="log-box">Load data to inspect the current selection.</pre>
+      </article>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

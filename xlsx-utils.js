@@ -27,7 +27,7 @@ export async function readWorkbookRows(file) {
     const relId = sheet.getAttribute("r:id");
     const target = relMap.get(relId);
     if (target) {
-      sheetByName.set(name, `xl/${target.replace(/^\.\//, "")}`);
+      sheetByName.set(name, normalizeWorkbookTarget(target));
     }
   }
 
@@ -263,6 +263,14 @@ function textEntry(entries, path) {
     throw new Error(`Brak wpisu ZIP: ${path}`);
   }
   return new TextDecoder("utf-8").decode(bytes);
+}
+
+function normalizeWorkbookTarget(target) {
+  const cleaned = target.replace(/\\/g, "/").replace(/^\.\//, "").replace(/^\/+/, "");
+  if (cleaned.startsWith("xl/")) {
+    return cleaned;
+  }
+  return `xl/${cleaned}`;
 }
 
 function parseXml(text) {

@@ -62,12 +62,12 @@ function wireEvents() {
 
 async function loadDataset() {
   try {
-    setStatus("Loading files...");
+    setStatus("Trwa wczytywanie plików...");
     const gminaFile = dom.gminaFile.files[0];
     const powiatFile = dom.powiatFile.files[0];
     const flowFile = dom.flowFile.files[0];
     if (!gminaFile || !powiatFile || !flowFile) {
-      throw new Error("Choose gmina GeoJSON, powiat GeoJSON, and flow workbook first.");
+      throw new Error("Najpierw wybierz plik GeoJSON gmin, GeoJSON powiatów oraz skoroszyt przepływów.");
     }
 
     const [gminaText, powiatText, flowRows] = await Promise.all([
@@ -83,9 +83,9 @@ async function loadDataset() {
     const flowLoad = loadFlowRows(flowRows, codeToName);
     const validation = validateDataset(gminas, flowLoad.flows, flowLoad.rawRows, flowLoad.normalizedCells, flowLoad.normalizedRows, flowFile.name, gminaFile.name);
     validation.warnings = [...powiatWarnings, ...flowLoad.warnings, ...validation.warnings];
-    validation.infoLines.push(`Powiat file: ${powiatFile.name}`);
-    validation.infoLines.push(`Powiat count: ${powiats.size}`);
-    validation.infoLines.push(`Gmina count assigned to powiats: ${Array.from(powiatToGminas.values()).reduce((acc, arr) => acc + arr.length, 0)}`);
+    validation.infoLines.push(`Plik powiatów: ${powiatFile.name}`);
+    validation.infoLines.push(`Liczba powiatów: ${powiats.size}`);
+    validation.infoLines.push(`Liczba gmin przypisanych do powiatów: ${Array.from(powiatToGminas.values()).reduce((acc, arr) => acc + arr.length, 0)}`);
 
     state.dataset = {
       gminas,
@@ -98,12 +98,12 @@ async function loadDataset() {
     };
     distanceCache.clear();
 
-    dom.loadSummary.textContent = `Loaded ${gminas.size} gminas, ${powiats.size} powiats, ${flowLoad.flows.length} aggregated flow rows.`;
+    dom.loadSummary.textContent = `Wczytano ${gminas.size} gmin, ${powiats.size} powiatów oraz ${flowLoad.flows.length} zagregowanych wierszy przepływów.`;
     renderValidation();
     refreshSelectionOptions();
-    setStatus("Dataset loaded.");
+    setStatus("Dane zostały wczytane.");
   } catch (error) {
-    setStatus("Load failed.");
+    setStatus("Wczytywanie nie powiodło się.");
     dom.validationText.textContent = String(error.message || error);
   }
 }
@@ -126,12 +126,12 @@ function buildPowiatLookup(gminas, powiats) {
 
   const emptyPowiats = Array.from(powiatToGminas.entries()).filter(([, items]) => items.length === 0).map(([code]) => code);
   if (unmatched.length) {
-    warnings.push(`${unmatched.length} gminas could not be assigned to a powiat from the TERYT prefix.`);
-    warnings.push(`Example unmatched gminas: ${unmatched.slice(0, 10).join(", ")}`);
+    warnings.push(`${unmatched.length} gmin nie udało się przypisać do powiatu na podstawie prefiksu TERYT.`);
+    warnings.push(`Przykład nieprzypisanych gmin: ${unmatched.slice(0, 10).join(", ")}`);
   }
   if (emptyPowiats.length) {
-    warnings.push(`${emptyPowiats.length} powiats have no assigned gminas in the current catalog.`);
-    warnings.push(`Example empty powiats: ${emptyPowiats.slice(0, 10).join(", ")}`);
+    warnings.push(`${emptyPowiats.length} powiatów nie ma przypisanych gmin w bieżącym katalogu.`);
+    warnings.push(`Przykład pustych powiatów: ${emptyPowiats.slice(0, 10).join(", ")}`);
   }
 
   return { gminaToPowiat, powiatToGminas, powiatWarnings: warnings };
@@ -165,10 +165,10 @@ function loadFlowRows(rows, codeToName) {
       normalizedRows += 1;
     }
     if (res.status.startsWith("flagged")) {
-      warnings.push(`Unmatched residence code in workbook: ${JSON.stringify(cleanText(resCodeRaw))} (${JSON.stringify(cleanText(resNameRaw))})`);
+      warnings.push(`Niepasujący kod zamieszkania w skoroszycie: ${JSON.stringify(cleanText(resCodeRaw))} (${JSON.stringify(cleanText(resNameRaw))})`);
     }
     if (work.status.startsWith("flagged")) {
-      warnings.push(`Unmatched work code in workbook: ${JSON.stringify(cleanText(workCodeRaw))} (${JSON.stringify(cleanText(workNameRaw))})`);
+      warnings.push(`Niepasujący kod pracy w skoroszycie: ${JSON.stringify(cleanText(workCodeRaw))} (${JSON.stringify(cleanText(workNameRaw))})`);
     }
 
     const fromName = res.name || cleanText(resNameRaw);
@@ -236,24 +236,24 @@ function validateDataset(gminas, flows, rawRows, normalizedCells, normalizedRows
     .sort()
     .map((code) => [code, ""]);
 
-  infoLines.push(`Flow file: ${excelFileName}`);
-  infoLines.push(`Gmina file: ${gminaFileName}`);
-  infoLines.push(`Gmina count: ${gminas.size}`);
-  infoLines.push(`Distinct normalized flow codes: ${flowCodes.size}`);
-  infoLines.push(`Loaded workbook rows: ${rawRows}`);
-  infoLines.push(`Normalized code cells: ${normalizedCells}`);
-  infoLines.push(`Rows requiring normalization: ${normalizedRows}`);
+  infoLines.push(`Plik przepływów: ${excelFileName}`);
+  infoLines.push(`Plik gmin: ${gminaFileName}`);
+  infoLines.push(`Liczba gmin: ${gminas.size}`);
+  infoLines.push(`Liczba unikalnych kodów po normalizacji: ${flowCodes.size}`);
+  infoLines.push(`Wczytane wiersze skoroszytu: ${rawRows}`);
+  infoLines.push(`Znormalizowane komórki kodów: ${normalizedCells}`);
+  infoLines.push(`Wiersze wymagające normalizacji: ${normalizedRows}`);
 
   if (missingInExcel.length) {
-    warnings.push(`${missingInExcel.length} gmina codes exist in boundaries but not in the workbook.`);
-    warnings.push(`Example missing in workbook: ${missingInExcel.slice(0, 10).map(([code, name]) => `${code} (${name})`).join(", ")}`);
+    warnings.push(`${missingInExcel.length} kodów gmin występuje w granicach, ale nie ma ich w skoroszycie.`);
+    warnings.push(`Przykład braków w skoroszycie: ${missingInExcel.slice(0, 10).map(([code, name]) => `${code} (${name})`).join(", ")}`);
   }
   if (missingInGmina.length) {
-    warnings.push(`${missingInGmina.length} flow codes exist in workbook but not in the gmina boundaries.`);
-    warnings.push(`Example missing in boundaries: ${missingInGmina.slice(0, 10).map(([code]) => code).join(", ")}`);
+    warnings.push(`${missingInGmina.length} kodów przepływów występuje w skoroszycie, ale brakuje ich w granicach gmin.`);
+    warnings.push(`Przykład braków w granicach: ${missingInGmina.slice(0, 10).map(([code]) => code).join(", ")}`);
   }
   if (!warnings.length) {
-    warnings.push("Validation completed successfully: all normalized workbook codes matched the loaded gmina catalog.");
+    warnings.push("Walidacja zakończona pomyślnie: wszystkie znormalizowane kody ze skoroszytu pasują do wczytanego katalogu gmin.");
   }
 
   return {
@@ -266,15 +266,15 @@ function validateDataset(gminas, flows, rawRows, normalizedCells, normalizedRows
 
 function renderValidation() {
   if (!state.dataset) {
-    dom.validationText.textContent = "No dataset loaded.";
+    dom.validationText.textContent = "Nie wczytano jeszcze zestawu danych.";
     return;
   }
   const lines = [
-    "Validation report",
+    "Raport walidacji",
     "",
     ...state.dataset.validation.infoLines.map((line) => `- ${line}`),
     "",
-    "Warnings",
+    "Ostrzeżenia",
     ...state.dataset.validation.warnings.map((line) => `- ${line}`),
   ];
   dom.validationText.textContent = lines.join("\n");
@@ -303,7 +303,7 @@ function refreshSelectionOptions() {
   if (!items.length) {
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = dataset ? "No matching items" : "Load data first";
+    option.textContent = dataset ? "Brak pasujących pozycji" : "Najpierw wczytaj dane";
     dom.selectionInput.append(option);
   } else {
     items.forEach((item) => {
@@ -335,13 +335,13 @@ function rebuildPowiatChecklist() {
   const dataset = state.dataset;
   dom.powiatChecklist.innerHTML = "";
   if (!dataset) {
-    dom.powiatSummary.textContent = "Choose a powiat to manage included gminas.";
+    dom.powiatSummary.textContent = "Wybierz powiat, aby zarządzać zaznaczonymi gminami.";
     return;
   }
 
   const selectedCode = getSelectedCode();
   if (!selectedCode || !dataset.powiats.has(selectedCode)) {
-    dom.powiatSummary.textContent = "Choose a powiat to manage included gminas.";
+    dom.powiatSummary.textContent = "Wybierz powiat, aby zarządzać zaznaczonymi gminami.";
     return;
   }
 
@@ -379,7 +379,7 @@ function refreshPowiatSummary() {
   }
   const checkMap = dataset.powiatChecks.get(state.currentPowiatCode);
   const selected = Array.from(checkMap.values()).filter(Boolean).length;
-  dom.powiatSummary.textContent = `Selected ${selected} / ${checkMap.size} gminas.`;
+  dom.powiatSummary.textContent = `Zaznaczono ${selected} / ${checkMap.size} gmin.`;
 }
 
 function setAllPowiatChecks(value) {
@@ -398,13 +398,13 @@ function setAllPowiatChecks(value) {
 function refreshSelectionSummary() {
   const dataset = state.dataset;
   if (!dataset) {
-    dom.detailsText.textContent = "Load data to inspect the current selection.";
+    dom.detailsText.textContent = "Wczytaj dane, aby zobaczyć szczegóły bieżącego wyboru.";
     return;
   }
 
   const selectionCode = getSelectedCode();
   if (!selectionCode) {
-    dom.detailsText.textContent = "Choose a gmina or powiat.";
+    dom.detailsText.textContent = "Wybierz gminę albo powiat.";
     return;
   }
 
@@ -426,14 +426,14 @@ function refreshSelectionSummary() {
     const totalSelfFlow = summaryRows.reduce((sum, result) => sum + result.selfFlow, 0);
     dom.detailsText.textContent = [
       `Powiat: ${powiat.code} - ${powiat.name}`,
-      `Selected gminas: ${selectedGminas.length} / ${allGminas.length}`,
-      `Flow mode: ${dom.flowMode.value === "from" ? "from gmina" : "to gmina"}`,
-      `Transfer filter: ${formatOptional(filterState.transferThreshold, ">", "none")}`,
-      `Distance filter: ${formatOptional(filterState.rangeKm, "<= ", "none", " km")}`,
-      `Top N: ${filterState.topN ?? "none"} (applied globally during export)`,
-      `Total matching rows before Top N: ${totalRows}`,
-      `Total internal self-flow: ${totalSelfFlow}`,
-      `Example selected gminas: ${selectedGminas.slice(0, 10).map((code) => `${code} - ${dataset.gminas.get(code).name}`).join(", ") || "none"}`,
+      `Zaznaczone gminy: ${selectedGminas.length} / ${allGminas.length}`,
+      `Tryb przepływu: ${dom.flowMode.value === "from" ? "z gminy" : "do gminy"}`,
+      `Filtr przepływów: ${formatOptional(filterState.transferThreshold, "> ", "bez filtra")}`,
+      `Filtr dystansu: ${formatOptional(filterState.rangeKm, "<= ", "bez filtra", " km")}`,
+      `Top N: ${filterState.topN ?? "bez filtra"} (stosowane globalnie podczas eksportu)`,
+      `Łączna liczba pasujących wierszy przed Top N: ${totalRows}`,
+      `Łączny przepływ wewnętrzny: ${totalSelfFlow}`,
+      `Przykładowe zaznaczone gminy: ${selectedGminas.slice(0, 10).map((code) => `${code} - ${dataset.gminas.get(code).name}`).join(", ") || "brak"}`,
     ].join("\n");
     refreshPowiatSummary();
     return;
@@ -445,17 +445,17 @@ function refreshSelectionSummary() {
   const powiatName = powiatCode && dataset.powiats.has(powiatCode) ? dataset.powiats.get(powiatCode).name : "";
   dom.detailsText.textContent = [
     `Gmina: ${gmina.code} - ${gmina.name}`,
-    `Powiat: ${powiatCode ? `${powiatCode} - ${powiatName}` : "none"}`,
-    `Flow mode: ${dom.flowMode.value === "from" ? "from gmina" : "to gmina"}`,
-    `Transfer filter: ${formatOptional(filterState.transferThreshold, ">", "none")}`,
-    `Distance filter: ${formatOptional(filterState.rangeKm, "<= ", "none", " km")}`,
-    `Top N: ${filterState.topN ?? "none"}`,
-    `Rows after filters: ${result.count}`,
-    `Internal self-flow: ${result.selfFlow}`,
-    `Distinct partner gminas: ${new Set(result.rows.map((row) => row.otherCode)).size}`,
-    `Excluded by transfer threshold: ${result.filteredByTransfer}`,
-    `Excluded by distance filter: ${result.filteredByDistance}`,
-    `Excluded by Top N: ${result.filteredByTopN}`,
+    `Powiat: ${powiatCode ? `${powiatCode} - ${powiatName}` : "brak"}`,
+    `Tryb przepływu: ${dom.flowMode.value === "from" ? "z gminy" : "do gminy"}`,
+    `Filtr przepływów: ${formatOptional(filterState.transferThreshold, "> ", "bez filtra")}`,
+    `Filtr dystansu: ${formatOptional(filterState.rangeKm, "<= ", "bez filtra", " km")}`,
+    `Top N: ${filterState.topN ?? "bez filtra"}`,
+    `Liczba wierszy po filtrach: ${result.count}`,
+    `Przepływ wewnętrzny: ${result.selfFlow}`,
+    `Liczba unikalnych gmin po drugiej stronie: ${new Set(result.rows.map((row) => row.otherCode)).size}`,
+    `Wykluczono przez filtr przepływów: ${result.filteredByTransfer}`,
+    `Wykluczono przez filtr dystansu: ${result.filteredByDistance}`,
+    `Wykluczono przez Top N: ${result.filteredByTopN}`,
   ].join("\n");
 }
 
@@ -560,11 +560,11 @@ async function exportBundle() {
   try {
     const dataset = state.dataset;
     if (!dataset) {
-      throw new Error("Load data before exporting.");
+      throw new Error("Najpierw wczytaj dane.");
     }
     const selectionCode = getSelectedCode();
     if (!selectionCode) {
-      throw new Error("Choose a gmina or powiat before exporting.");
+      throw new Error("Przed eksportem wybierz gminę albo powiat.");
     }
 
     const filterState = getFilterState();
@@ -572,7 +572,7 @@ async function exportBundle() {
       throw new Error(filterState.error);
     }
 
-    setStatus("Preparing export...");
+    setStatus("Przygotowywanie eksportu...");
     let rows = [];
     let selectedName = "";
     let contextLabel = "";
@@ -584,7 +584,7 @@ async function exportBundle() {
       const powiat = dataset.powiats.get(selectionCode);
       const selectedGminas = getSelectedPowiatGminas(selectionCode);
       if (!selectedGminas.length) {
-        throw new Error("Select at least one gmina in the chosen powiat.");
+        throw new Error("Zaznacz co najmniej jedną gminę w wybranym powiecie.");
       }
       contextLabel = `powiat ${powiat.code} - ${powiat.name}`;
       selectedName = powiat.name;
@@ -632,7 +632,7 @@ async function exportBundle() {
     const workbook = await buildWorkbookBlob(buildWorkbookSheets(rows, report));
     const txtBytes = textToBytes(report.summaryLines.join("\n") + "\n");
     const timestamp = timestampSlug();
-    const baseName = `${timestamp}_${safeFilename(selectionCode || "scope")}_${safeFilename(selectedName || contextLabel || "export")}`;
+    const baseName = `${timestamp}_${safeFilename(selectionCode || "zakres")}_${safeFilename(selectedName || contextLabel || "eksport")}`;
 
     const bundle = await createZip([
       { name: `${baseName}/${baseName}_lines.geojson`, data: textToBytes(JSON.stringify(lineGeoJson, null, 2)) },
@@ -642,9 +642,9 @@ async function exportBundle() {
     ]);
 
     downloadBlob(new Blob([bundle], { type: "application/zip" }), `${baseName}.zip`);
-    setStatus("Export ready.");
+    setStatus("Eksport gotowy.");
   } catch (error) {
-    setStatus("Export failed.");
+    setStatus("Eksport nie powiódł się.");
     alert(String(error.message || error));
   }
 }
@@ -658,15 +658,15 @@ function buildLineGeoJson(dataset, rows) {
       continue;
     }
     features.push(makeLineFeature(source, target, {
-      source_code: row.sourceCode,
-      source_name: row.sourceName,
-      target_code: row.targetCode,
-      target_name: row.targetName,
-      distance_km: round(row.distanceKm, 3),
-      transfers: row.transfers,
-      direction: row.direction === "from" ? "from gmina" : "to gmina",
-      selected_code: row.selectedCode,
-      selected_name: row.selectedName,
+      kod_zrodlowy: row.sourceCode,
+      nazwa_zrodlowa: row.sourceName,
+      kod_docelowy: row.targetCode,
+      nazwa_docelowa: row.targetName,
+      odleglosc_km: round(row.distanceKm, 3),
+      przeplywy: row.transfers,
+      kierunek: row.direction === "from" ? "z gminy" : "do gminy",
+      kod_wybranej_gminy: row.selectedCode,
+      nazwa_wybranej_gminy: row.selectedName,
     }));
   }
   return { type: "FeatureCollection", features };
@@ -677,14 +677,14 @@ function buildPolygonGeoJson(dataset, rows, contextLabel) {
   return {
     type: "FeatureCollection",
     features: connected.map((row) => makePolygonFeature(dataset.gminas.get(row.code), {
-      code: row.code,
-      name: row.name,
-      connection_count: row.connectionCount,
-      total_transfers: row.totalTransfers,
-      outgoing_transfers: row.outgoingTransfers,
-      incoming_transfers: row.incomingTransfers,
-      partners: row.partners.join("; "),
-      scope: contextLabel,
+      kod_teryt: row.code,
+      nazwa_gminy: row.name,
+      liczba_polaczen: row.connectionCount,
+      suma_przeplywow: row.totalTransfers,
+      suma_wychodzacych: row.outgoingTransfers,
+      suma_przychodzacych: row.incomingTransfers,
+      partnerzy: row.partners.join("; "),
+      zakres: contextLabel,
     })),
   };
 }
@@ -753,59 +753,59 @@ function buildExportReport(dataset, rows, selectedCode, selectedName, contextLab
   const networkMetrics = buildNetworkMetrics(rows, selfFlow, selectionStats);
   const scopeStats = buildScopeStats(rows, selfFlow, selectionStats);
   const statsItems = [
-    ["Scope", selectedCode && selectedName ? `${selectedCode} - ${selectedName}` : contextLabel],
-    ["Mode", dom.flowMode.value === "from" ? "from gmina" : "to gmina"],
-    ["Transfer filter", filters.transferThreshold === null ? "none" : `> ${filters.transferThreshold}`],
-    ["Distance filter", filters.rangeKm === null ? "none" : `<= ${filters.rangeKm.toFixed(2)} km`],
-    ["Top N", filters.topN === null ? "none" : String(filters.topN)],
-    ["Input rows", String(inputRows || rows.length + selfFlow)],
-    ["Rows after filters", String(rows.length)],
-    ["Total transfers", `${totalTransfers} persons`],
-    ["Average transfers per row", avgTransfers.toFixed(2)],
-    ["Median transfers", median(rows.map((row) => row.transfers)).toFixed(2)],
-    ["Minimum transfers", String(rows.length ? Math.min(...rows.map((row) => row.transfers)) : 0)],
-    ["Maximum transfers", String(rows.length ? Math.max(...rows.map((row) => row.transfers)) : 0)],
-    ["Average distance", `${mean(distances).toFixed(2)} km`],
-    ["Median distance", `${median(distances).toFixed(2)} km`],
-    ["Weighted average distance", `${weightedDistance.toFixed(2)} km`],
-    ["Minimum distance", `${(rows.length ? Math.min(...distances) : 0).toFixed(2)} km`],
-    ["Maximum distance", `${(rows.length ? Math.max(...distances) : 0).toFixed(2)} km`],
-    ["Unique selected gminas", String(uniqueSelected || (selectedCode ? 1 : 0))],
-    ["Unique partner gminas", String(uniqueOther)],
-    ["Internal self-flow", `${selfFlow} persons`],
-    ["Missing in workbook", String(dataset.validation.missingInExcel.length)],
-    ["Missing in boundaries", String(dataset.validation.missingInGmina.length)],
+    ["Zakres", selectedCode && selectedName ? `${selectedCode} - ${selectedName}` : contextLabel],
+    ["Tryb", dom.flowMode.value === "from" ? "z gminy" : "do gminy"],
+    ["Filtr przepływów", filters.transferThreshold === null ? "bez filtra" : `> ${filters.transferThreshold}`],
+    ["Filtr dystansu", filters.rangeKm === null ? "bez filtra" : `<= ${filters.rangeKm.toFixed(2)} km`],
+    ["Top N", filters.topN === null ? "bez filtra" : String(filters.topN)],
+    ["Wiersze wejściowe", String(inputRows || rows.length + selfFlow)],
+    ["Wiersze po filtrach", String(rows.length)],
+    ["Łączna liczba przepływów", `${totalTransfers} osób`],
+    ["Średni przepływ na wiersz", avgTransfers.toFixed(2)],
+    ["Mediana przepływów", median(rows.map((row) => row.transfers)).toFixed(2)],
+    ["Minimalny przepływ", String(rows.length ? Math.min(...rows.map((row) => row.transfers)) : 0)],
+    ["Maksymalny przepływ", String(rows.length ? Math.max(...rows.map((row) => row.transfers)) : 0)],
+    ["Średnia odległość", `${mean(distances).toFixed(2)} km`],
+    ["Mediana odległości", `${median(distances).toFixed(2)} km`],
+    ["Średnia ważona odległość", `${weightedDistance.toFixed(2)} km`],
+    ["Minimalna odległość", `${(rows.length ? Math.min(...distances) : 0).toFixed(2)} km`],
+    ["Maksymalna odległość", `${(rows.length ? Math.max(...distances) : 0).toFixed(2)} km`],
+    ["Unikalne gminy zakresu", String(uniqueSelected || (selectedCode ? 1 : 0))],
+    ["Unikalne gminy po drugiej stronie", String(uniqueOther)],
+    ["Przepływ wewnętrzny", `${selfFlow} osób`],
+    ["Braki w skoroszycie", String(dataset.validation.missingInExcel.length)],
+    ["Braki w granicach", String(dataset.validation.missingInGmina.length)],
   ];
 
   const summaryLines = [
-    `Run timestamp: ${new Date().toISOString()}`,
-    `Scope: ${selectedCode && selectedName ? `${selectedCode} - ${selectedName}` : contextLabel}`,
-    `Mode: ${dom.flowMode.value === "from" ? "from gmina" : "to gmina"}`,
-    `Transfer filter: ${filters.transferThreshold === null ? "none" : `> ${filters.transferThreshold}`}`,
-    `Distance filter: ${filters.rangeKm === null ? "none" : `<= ${filters.rangeKm.toFixed(2)} km`}`,
-    `Top N: ${filters.topN === null ? "none" : filters.topN}`,
-    "Note: in powiat mode, Top N is applied globally to the combined result.",
-    "Distance is calculated from gmina centroids.",
+    `Data uruchomienia: ${new Date().toISOString()}`,
+    `Zakres: ${selectedCode && selectedName ? `${selectedCode} - ${selectedName}` : contextLabel}`,
+    `Tryb: ${dom.flowMode.value === "from" ? "z gminy" : "do gminy"}`,
+    `Filtr przepływów: ${filters.transferThreshold === null ? "bez filtra" : `> ${filters.transferThreshold}`}`,
+    `Filtr dystansu: ${filters.rangeKm === null ? "bez filtra" : `<= ${filters.rangeKm.toFixed(2)} km`}`,
+    `Top N: ${filters.topN === null ? "bez filtra" : filters.topN}`,
+    "Uwaga: w trybie powiatu Top N jest stosowany globalnie dla wyniku łączonego.",
+    "Dystans liczony jest między centroidami gmin.",
     "",
-    "Validation summary:",
+    "Podsumowanie walidacji:",
     ...dataset.validation.infoLines.map((line) => `  ${line}`),
-    `  Missing in workbook: ${dataset.validation.missingInExcel.length}`,
-    `  Missing in boundaries: ${dataset.validation.missingInGmina.length}`,
+    `  Braki w skoroszycie: ${dataset.validation.missingInExcel.length}`,
+    `  Braki w granicach: ${dataset.validation.missingInGmina.length}`,
     "",
-    "Query stats:",
+    "Statystyki zapytania:",
     ...statsItems.map(([label, value]) => `  ${label}: ${value}`),
     "",
-    "Top flows:",
+    "Największe przepływy:",
   ];
   if (!topRows.length) {
-    summaryLines.push("  No rows remain after filtering.");
+    summaryLines.push("  Brak danych po zastosowaniu filtrów.");
   } else {
     topRows.forEach((row, index) => {
-      summaryLines.push(`  ${index + 1}. ${row.sourceCode} - ${row.sourceName} -> ${row.targetCode} - ${row.targetName}: ${row.transfers} persons, ${row.distanceKm.toFixed(2)} km`);
+      summaryLines.push(`  ${index + 1}. ${row.sourceCode} - ${row.sourceName} -> ${row.targetCode} - ${row.targetName}: ${row.transfers} osób, ${row.distanceKm.toFixed(2)} km`);
     });
   }
   summaryLines.push("");
-  summaryLines.push("Warnings:");
+  summaryLines.push("Ostrzeżenia:");
   dataset.validation.warnings.forEach((warning) => summaryLines.push(`  - ${warning}`));
 
   return { summaryLines, statsItems, topRows, networkMetrics, scopeStats };
@@ -873,9 +873,9 @@ function buildNetworkMetrics(rows, selfFlow, selectionStats) {
 function buildWorkbookSheets(rows, report) {
   return [
     {
-      name: "Flows",
+      name: "Przepływy",
       rows: [
-        ["Source code", "Source name", "Target code", "Target name", "Distance km", "Transfers", "Direction", "Selected code", "Selected name"],
+        ["Kod źródłowy", "Nazwa źródłowa", "Kod docelowy", "Nazwa docelowa", "Odległość km", "Przepływy", "Kierunek", "Kod wybranej gminy", "Nazwa wybranej gminy"],
         ...rows.map((row) => [
           row.sourceCode,
           row.sourceName,
@@ -883,41 +883,41 @@ function buildWorkbookSheets(rows, report) {
           row.targetName,
           round(row.distanceKm, 3),
           row.transfers,
-          row.direction === "from" ? "from gmina" : "to gmina",
+          row.direction === "from" ? "z gminy" : "do gminy",
           row.selectedCode,
           row.selectedName,
         ]),
       ],
     },
     {
-      name: "Summary",
+      name: "Podsumowanie",
       rows: report.summaryLines.map((line) => [line]),
     },
     {
-      name: "Query Stats",
+      name: "Statystyki zapytania",
       rows: [
-        ["Metric", "Value"],
+        ["Metryka", "Wartość"],
         ...report.statsItems,
       ],
     },
     {
-      name: "Top Flows",
+      name: "Największe przepływy",
       rows: [
-        ["Lp", "Source code", "Source name", "Target code", "Target name", "Transfers", "Distance km"],
+        ["Lp", "Kod źródłowy", "Nazwa źródłowa", "Kod docelowy", "Nazwa docelowa", "Przepływy", "Odległość km"],
         ...report.topRows.map((row, index) => [index + 1, row.sourceCode, row.sourceName, row.targetCode, row.targetName, row.transfers, round(row.distanceKm, 3)]),
       ],
     },
     {
-      name: "Scope Stats",
+      name: "Statystyki zakresu",
       rows: [
-        ["Lp", "Selected code", "Selected name", "Row count", "Total transfers", "Average transfers", "Median transfers", "Total distance km", "Average distance km", "Unique partners", "Self flow"],
+        ["Lp", "Kod wybranej gminy", "Nazwa wybranej gminy", "Liczba wierszy", "Suma przepływów", "Średni przepływ", "Mediana przepływów", "Suma odległości km", "Średnia odległość km", "Liczba unikalnych partnerów", "Przepływ wewnętrzny"],
         ...report.scopeStats.map((row) => [row.lp, row.selectedCode, row.selectedName, row.rowCount, row.totalTransfers, round(row.avgTransfers, 2), round(row.medianTransfers, 2), round(row.totalDistanceKm, 3), round(row.avgDistanceKm, 3), row.uniquePartners, row.selfFlow]),
       ],
     },
     {
-      name: "Network Metrics",
+      name: "Metryki sieci",
       rows: [
-        ["Lp", "Selected code", "Selected name", "Row count", "Total transfers", "Average transfers", "Median transfers", "Total distance km", "Average distance km", "Unique partners", "Strongest partner code", "Strongest partner name", "Strongest partner transfers", "Strongest partner distance km", "Degree centrality", "Flow centrality", "Strongest share", "Average transfers per partner", "Self flow"],
+        ["Lp", "Kod wybranej gminy", "Nazwa wybranej gminy", "Liczba wierszy", "Suma przepływów", "Średni przepływ", "Mediana przepływów", "Suma odległości km", "Średnia odległość km", "Liczba unikalnych partnerów", "Kod najsilniejszego partnera", "Nazwa najsilniejszego partnera", "Przepływ najsilniejszego partnera", "Odległość do najsilniejszego partnera km", "Stopień centralności", "Centralność przepływu", "Udział najsilniejszego partnera", "Średni przepływ na partnera", "Przepływ wewnętrzny"],
         ...report.networkMetrics.map((row) => [row.lp, row.selectedCode, row.selectedName, row.rowCount, row.totalTransfers, round(row.avgTransfers, 2), round(row.medianTransfers, 2), round(row.totalDistanceKm, 3), round(row.avgDistanceKm, 3), row.uniquePartners, row.strongestPartnerCode, row.strongestPartnerName, row.strongestPartnerTransfers, round(row.strongestPartnerDistanceKm, 3), round(row.degreeCentrality, 4), round(row.flowCentrality, 4), round(row.strongestShare, 4), round(row.avgTransfersPerPartner, 2), row.selfFlow]),
       ],
     },
@@ -942,11 +942,11 @@ function getSelectedPowiatGminas(powiatCode) {
 }
 
 function getFilterState() {
-  const transferThreshold = parseOptionalInt(dom.transferThreshold.value, "Transfer threshold");
+  const transferThreshold = parseOptionalInt(dom.transferThreshold.value, "filtr przepływów");
   if (transferThreshold.error) {
     return transferThreshold;
   }
-  const rangeKm = parseOptionalFloat(dom.rangeKm.value, "Max distance");
+  const rangeKm = parseOptionalFloat(dom.rangeKm.value, "maks. dystans");
   if (rangeKm.error) {
     return rangeKm;
   }
@@ -969,10 +969,10 @@ function parseOptionalInt(value, label) {
   }
   const parsed = Number.parseInt(text, 10);
   if (!Number.isFinite(parsed)) {
-    return { value: null, error: `${label} must be an integer.` };
+    return { value: null, error: `Pole ${label} musi być liczbą całkowitą.` };
   }
   if (parsed < 0) {
-    return { value: null, error: `${label} cannot be negative.` };
+    return { value: null, error: `Pole ${label} nie może być ujemne.` };
   }
   return { value: parsed, error: null };
 }
@@ -984,10 +984,10 @@ function parseOptionalFloat(value, label) {
   }
   const parsed = Number.parseFloat(text);
   if (!Number.isFinite(parsed)) {
-    return { value: null, error: `${label} must be numeric.` };
+    return { value: null, error: `Pole ${label} musi być liczbą.` };
   }
   if (parsed < 0) {
-    return { value: null, error: `${label} cannot be negative.` };
+    return { value: null, error: `Pole ${label} nie może być ujemne.` };
   }
   return { value: parsed, error: null };
 }

@@ -34,7 +34,7 @@ export async function readWorkbookRows(file) {
   const targetSheetName = pickSheetName(Array.from(sheetByName.keys()));
   const targetPath = sheetByName.get(targetSheetName);
   if (!targetPath) {
-    throw new Error("Unable to locate worksheet in workbook.");
+    throw new Error("Nie udało się odnaleźć arkusza w skoroszycie.");
   }
 
   const sharedStrings = sharedStringsXml ? parseSharedStrings(textEntry(entries, "xl/sharedStrings.xml")) : [];
@@ -260,7 +260,7 @@ ${sheetRows}
 function textEntry(entries, path) {
   const bytes = entries.get(path);
   if (!bytes) {
-    throw new Error(`Missing ZIP entry: ${path}`);
+    throw new Error(`Brak wpisu ZIP: ${path}`);
   }
   return new TextDecoder("utf-8").decode(bytes);
 }
@@ -269,7 +269,7 @@ function parseXml(text) {
   const doc = new DOMParser().parseFromString(text, XML);
   const errorNode = doc.querySelector("parsererror");
   if (errorNode) {
-    throw new Error("Invalid XML while reading workbook.");
+    throw new Error("Nieprawidłowy XML podczas odczytu skoroszytu.");
   }
   return doc;
 }

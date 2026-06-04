@@ -1,77 +1,77 @@
-# Commuter Flow Web
+# Ania NSP - wersja przeglądarkowa
 
-This folder contains a self-contained static browser app. You can upload the whole folder to a GitHub repository and host it with GitHub Pages.
+Ten folder zawiera samodzielną statyczną aplikację przeglądarkową. Możesz wgrać cały folder do repozytorium GitHub i hostować go przez GitHub Pages.
 
-## What it does
+## Co robi aplikacja
 
-- loads local gmina boundary data
-- loads local powiat boundary data
-- loads local flow data from `XLSX`, `CSV`, or `TXT`
-- lets the user choose gmina or powiat scope
-- applies transfer, distance, and Top N filters
-- exports a downloadable ZIP bundle with:
-  - line `GeoJSON`
-  - polygon `GeoJSON`
-  - summary `TXT`
-  - multi-sheet `XLSX`
+- wczytuje lokalne dane granic gmin
+- wczytuje lokalne dane granic powiatów
+- wczytuje lokalne dane przepływów z `XLSX`, `CSV` lub `TXT`
+- pozwala wybrać zakres gminy albo powiatu
+- stosuje filtry przepływu, odległości i Top N
+- eksportuje paczkę ZIP do pobrania zawierającą:
+  - liniowy `GeoJSON`
+  - poligonowy `GeoJSON`
+  - podsumowanie `TXT`
+  - wieloarkuszowy `XLSX`
 
-## Important first-version constraint
+## Ważne ograniczenie tej pierwszej wersji
 
-This version is fully dependency-free and browser-only, so it does **not** read or write `GPKG` yet.
+Ta wersja działa całkowicie bez zależności zewnętrznych i wyłącznie w przeglądarce, dlatego na razie **nie** odczytuje ani nie zapisuje `GPKG`.
 
-Instead it expects:
+Zamiast tego oczekuje:
 
-- gmina boundaries as `GeoJSON`
-- powiat boundaries as `GeoJSON`
-- flow data as `XLSX`, `CSV`, or `TXT`
+- granic gmin w formacie `GeoJSON`
+- granic powiatów w formacie `GeoJSON`
+- danych przepływów w formacie `XLSX`, `CSV` lub `TXT`
 
-That tradeoff is what keeps the app:
+To uproszczenie pozwala zachować aplikację:
 
-- hostable on GitHub Pages
-- fully contained in one folder
-- free of CDNs, build steps, and installs
+- hostowalną na GitHub Pages
+- w pełni zamkniętą w jednym folderze
+- bez CDN, kroków budowania i instalacji
 
-## Expected input fields
+## Oczekiwane pola wejściowe
 
-### Gmina GeoJSON
+### GeoJSON gmin
 
-Feature properties should include:
+Właściwości obiektów powinny zawierać:
 
 - `JPT_KOD_JE`
 - `JPT_NAZWA_`
 
-Fallback property names also supported:
+Obsługiwane są także zapasowe nazwy pól:
 
 - `kod_teryt`
 - `code`
 - `name`
 - `nazwa_gminy`
 
-### Powiat GeoJSON
+### GeoJSON powiatów
 
-Feature properties should include:
+Właściwości obiektów powinny zawierać:
 
 - `JPT_KOD_JE`
 - `JPT_NAZWA_`
 
-### Flow workbook
+### Skoroszyt przepływów
 
-The app uses the first matching worksheet named like `Macierz przeplywow`, or the first worksheet if no close match exists.
+Aplikacja używa pierwszego pasującego arkusza o nazwie zbliżonej do `Macierz przeplywow`, a jeśli nie znajdzie podobnego, bierze pierwszy arkusz.
 
-The first five columns are interpreted as:
+Pierwsze pięć kolumn jest interpretowanych jako:
 
-1. residence code
-2. residence name
-3. work code
-4. work name
-5. transfers
+1. kod zamieszkania
+2. nazwa zamieszkania
+3. kod pracy
+4. nazwa pracy
+5. przepływy
 
-## Hosting on GitHub Pages
+## Hosting na GitHub Pages
 
-1. Put this folder in your repository.
-2. Make sure `index.html` stays at the published root or published subfolder.
-3. Enable GitHub Pages in repo settings.
+1. Umieść ten folder w swoim repozytorium.
+2. Upewnij się, że `index.html` znajduje się w publikowanym katalogu głównym albo podfolderze publikacji.
+3. Włącz GitHub Pages w ustawieniach repozytorium.
 
-## Next upgrade path
+## Następny krok rozwoju
 
-If you want full parity with the desktop tool, the next step is bundling a browser SQLite/WASM runtime inside this folder so the app can ingest and emit real `GPKG` files too.
+Jeżeli chcesz uzyskać pełniejszą zgodność z wersją desktopową, kolejnym krokiem będzie dołączenie do tego folderu przeglądarkowego środowiska SQLite/WASM, aby aplikacja mogła również wczytywać i generować prawdziwe pliki `GPKG`.

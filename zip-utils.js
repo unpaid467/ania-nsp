@@ -17,7 +17,7 @@ export async function unzipEntries(file) {
   const bytes = new Uint8Array(buffer);
   const eocdOffset = findEndOfCentralDirectory(bytes);
   if (eocdOffset < 0) {
-    throw new Error("ZIP end of central directory not found.");
+    throw new Error("Nie znaleziono końca katalogu centralnego ZIP.");
   }
 
   const view = new DataView(buffer);
@@ -28,7 +28,7 @@ export async function unzipEntries(file) {
 
   for (let i = 0; i < entryCount; i += 1) {
     if (view.getUint32(offset, true) !== 0x02014b50) {
-      throw new Error("Invalid ZIP central directory entry.");
+      throw new Error("Nieprawidłowy wpis katalogu centralnego ZIP.");
     }
 
     const compressionMethod = view.getUint16(offset + 10, true);
@@ -51,11 +51,11 @@ export async function unzipEntries(file) {
     } else if (compressionMethod === 8) {
       content = await inflateRaw(compressed);
     } else {
-      throw new Error(`Unsupported ZIP compression method: ${compressionMethod}`);
+      throw new Error(`Nieobsługiwana metoda kompresji ZIP: ${compressionMethod}`);
     }
 
     if (content.byteLength !== uncompressedSize) {
-      throw new Error(`ZIP entry size mismatch for ${fileName}`);
+      throw new Error(`Niezgodny rozmiar wpisu ZIP dla pliku ${fileName}`);
     }
     entries.set(fileName, content);
 

@@ -3,7 +3,7 @@ export function parseGeoJson(text) {
   if (data.type === "FeatureCollection" && Array.isArray(data.features)) {
     return data;
   }
-  throw new Error("Expected a GeoJSON FeatureCollection.");
+  throw new Error("Oczekiwano obiektu GeoJSON typu FeatureCollection.");
 }
 
 export function buildGminaCatalog(featureCollection) {
